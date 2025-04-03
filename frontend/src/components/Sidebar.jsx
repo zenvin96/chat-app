@@ -38,14 +38,12 @@ const Sidebar = () => {
   if (isLoading) return <SidebarSkeleton />;
 
   return (
-    <aside className="h-full w-full sm:w-80 md:w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
+    <aside className="h-full w-20 lg:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
       <div className="border-b border-base-300 w-full p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Users className="size-6" />
-            <span className="font-medium block md:hidden lg:block">
-              Contacts
-            </span>
+            <span className="font-medium hidden lg:block">Contacts</span>
           </div>
 
           <button
@@ -66,8 +64,8 @@ const Sidebar = () => {
             }`}
             onClick={() => setActiveTab("users")}
           >
-            <User className="size-4 md:mr-0 mr-1 lg:mr-1" />
-            <span className="block md:hidden lg:block">Users</span>
+            <User className="size-4 mr-1" />
+            <span>Users</span>
           </button>
           <button
             className={`tab flex-1 ${
@@ -75,8 +73,8 @@ const Sidebar = () => {
             }`}
             onClick={() => setActiveTab("groups")}
           >
-            <UsersRound className="size-4 md:mr-0 mr-1 lg:mr-1" />
-            <span className="block md:hidden lg:block">Groups</span>
+            <UsersRound className="size-4 mr-1" />
+            <span>Groups</span>
           </button>
         </div>
 
@@ -90,11 +88,9 @@ const Sidebar = () => {
                 onChange={(e) => setShowOnlineOnly(e.target.checked)}
                 className="checkbox checkbox-sm"
               />
-              <span className="text-sm block md:hidden lg:block">
-                Show online only
-              </span>
+              <span className="text-sm">Show online only</span>
             </label>
-            <span className="text-xs text-zinc-500 block md:hidden lg:block">
+            <span className="text-xs text-zinc-500">
               ({onlineUsers.length - 1} online)
             </span>
           </div>
@@ -120,7 +116,7 @@ const Sidebar = () => {
                   }
                 `}
               >
-                <div className="relative flex-shrink-0">
+                <div className="relative mx-auto lg:mx-0">
                   <img
                     src={user.profilePic || "/avatar.png"}
                     alt={user.name}
@@ -129,12 +125,12 @@ const Sidebar = () => {
                   {onlineUsers.includes(user._id) && (
                     <span
                       className="absolute bottom-0 right-0 size-3 bg-green-500 
-                      rounded-full ring-2 ring-base-100"
+                      rounded-full ring-2 ring-zinc-900"
                     />
                   )}
                 </div>
 
-                <div className="text-left min-w-0">
+                <div className="hidden lg:block text-left min-w-0">
                   <div className="font-medium truncate">{user.fullName}</div>
                   <div className="text-sm text-zinc-400">
                     {onlineUsers.includes(user._id) ? "Online" : "Offline"}
@@ -169,7 +165,7 @@ const Sidebar = () => {
                     }
                   `}
                 >
-                  <div className="relative flex-shrink-0">
+                  <div className="relative mx-auto lg:mx-0">
                     <div className="size-12 bg-base-300 rounded-full flex items-center justify-center overflow-hidden">
                       {group.groupPic ? (
                         <img
@@ -183,7 +179,7 @@ const Sidebar = () => {
                     </div>
                   </div>
 
-                  <div className="text-left min-w-0">
+                  <div className="hidden lg:block text-left min-w-0">
                     <div className="font-medium truncate">{group.name}</div>
                     <div className="text-sm text-zinc-400">
                       {group.members.length} members

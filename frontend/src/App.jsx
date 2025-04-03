@@ -9,34 +9,22 @@ import ProfilePage from "./pages/ProfilePage";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "./store/useAuthStore";
 import { useThemeStore } from "./store/useThemeStore";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 
 import { Loader } from "lucide-react";
 import { Toaster } from "react-hot-toast";
-import { useChatStore } from "./store/useChatStore";
 
 const App = () => {
-  const { authUser, checkAuth, isCheckingAuth } = useAuthStore();
+  const { authUser, checkAuth, isCheckingAuth, onlineUsers } = useAuthStore();
   const { theme } = useThemeStore();
-  const { selectedUser, selectedGroup } = useChatStore();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  // 检测是否在聊天界面
-  const isChatActive = selectedUser || selectedGroup;
-
-  // 检测窗口大小变化
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  console.log({ onlineUsers });
 
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
+
+  console.log({ authUser });
 
   if (isCheckingAuth && !authUser)
     return (
@@ -47,8 +35,7 @@ const App = () => {
 
   return (
     <div data-theme={theme}>
-      {/* 在移动设备且有活跃聊天时隐藏导航栏 */}
-      {!(isMobile && isChatActive) && <Navbar />}
+      <Navbar />
 
       <Routes>
         <Route

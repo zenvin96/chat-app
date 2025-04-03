@@ -17,7 +17,7 @@ const server = http.createServer(app);
  */
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173"], // 允许前端开发服务器连接
+    origin: ["http://localhost:5173", "http://192.168.0.8:5173"], // 允许前端开发服务器连接
   },
 });
 

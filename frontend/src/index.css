@@ -2,20 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 添加自定义动画 */
-@keyframes slide-in-left {
-  from {
-    transform: translateX(-100%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-
-.animate-slide-in-left {
-  animation: slide-in-left 0.3s ease-out forwards;
-}
-
 /* 表情选择器样式定制 */
 .emoji-picker-react {
   box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);

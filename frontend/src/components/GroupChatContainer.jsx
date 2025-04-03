@@ -4,27 +4,12 @@ import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
-import {
-  UsersRound,
-  Info,
-  UserPlus,
-  LogOut,
-  ArrowLeft,
-  Menu,
-} from "lucide-react";
+import { UsersRound, Info, UserPlus, LogOut } from "lucide-react";
 import GroupMembersModal from "./GroupMembersModal";
-import MobileSidebar from "./MobileSidebar";
 
-const GroupChatHeader = ({
-  group,
-  onAddMembers,
-  onLeaveGroup,
-  showBackButton,
-  onBack,
-}) => {
+const GroupChatHeader = ({ group, onAddMembers, onLeaveGroup }) => {
   const { members } = group;
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const handleLeaveClick = () => {
     setShowLeaveConfirm(true);
@@ -35,104 +20,73 @@ const GroupChatHeader = ({
     setShowLeaveConfirm(false);
   };
 
-  const toggleMobileMenu = () => {
-    setShowMobileMenu(!showMobileMenu);
-  };
-
   return (
-    <>
-      <div className="py-3 px-4 border-b border-base-300 flex items-center justify-between relative">
-        <div className="flex items-center gap-3">
-          {showBackButton ? (
-            <button
-              onClick={onBack}
-              className="btn btn-sm btn-square btn-ghost mr-1"
-              aria-label="Back to groups"
-            >
-              <ArrowLeft className="size-5" />
-            </button>
+    <div className="py-3 px-4 border-b border-base-300 flex items-center justify-between relative">
+      <div className="flex items-center gap-3">
+        <div className="size-12 bg-base-300 rounded-full flex items-center justify-center overflow-hidden">
+          {group.groupPic ? (
+            <img
+              src={group.groupPic}
+              alt={group.name}
+              className="w-full h-full object-cover"
+            />
           ) : (
-            <button
-              onClick={toggleMobileMenu}
-              className="btn btn-sm btn-square btn-ghost md:hidden mr-1"
-              aria-label="Open contacts"
-            >
-              <Menu className="size-5" />
-            </button>
+            <UsersRound className="size-6 text-zinc-500" />
           )}
-          <div className="size-12 bg-base-300 rounded-full flex items-center justify-center overflow-hidden">
-            {group.groupPic ? (
-              <img
-                src={group.groupPic}
-                alt={group.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <UsersRound className="size-6 text-zinc-500" />
-            )}
-          </div>
-          <div>
-            <h3 className="font-bold">{group.name}</h3>
-            <p className="text-sm text-zinc-400">{members.length} members</p>
-          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onAddMembers}
-            className="btn btn-sm btn-ghost btn-circle"
-            title="Add Members"
-          >
-            <UserPlus className="size-5" />
-          </button>
-          <button
-            className="btn btn-sm btn-ghost btn-circle"
-            title="Group Info"
-          >
-            <Info className="size-5" />
-          </button>
-          <button
-            onClick={handleLeaveClick}
-            className="btn btn-sm btn-ghost btn-circle text-red-500"
-            title="Leave Group"
-          >
-            <LogOut className="size-5" />
-          </button>
+        <div>
+          <h3 className="font-bold">{group.name}</h3>
+          <p className="text-sm text-zinc-400">{members.length} members</p>
         </div>
-
-        {/* Leave Confirmation Dialog */}
-        {showLeaveConfirm && (
-          <div className="absolute z-20 right-0 top-[calc(100%+10px)] bg-base-200 shadow-md rounded-lg p-4 w-64">
-            <h4 className="font-bold mb-2">Leave Group?</h4>
-            <p className="text-sm mb-3">
-              You will no longer receive messages from this group.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                className="btn btn-sm btn-ghost"
-                onClick={() => setShowLeaveConfirm(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn btn-sm btn-error text-white"
-                onClick={confirmLeave}
-              >
-                Leave
-              </button>
-            </div>
-          </div>
-        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onAddMembers}
+          className="btn btn-sm btn-ghost btn-circle"
+          title="Add Members"
+        >
+          <UserPlus className="size-5" />
+        </button>
+        <button className="btn btn-sm btn-ghost btn-circle" title="Group Info">
+          <Info className="size-5" />
+        </button>
+        <button
+          onClick={handleLeaveClick}
+          className="btn btn-sm btn-ghost btn-circle text-red-500"
+          title="Leave Group"
+        >
+          <LogOut className="size-5" />
+        </button>
       </div>
 
-      {/* 移动端侧边栏 */}
-      {showMobileMenu && (
-        <MobileSidebar onClose={() => setShowMobileMenu(false)} />
+      {/* Leave Confirmation Dialog */}
+      {showLeaveConfirm && (
+        <div className="absolute z-20 right-0 top-[calc(100%+10px)] bg-base-200 shadow-md rounded-lg p-4 w-64">
+          <h4 className="font-bold mb-2">Leave Group?</h4>
+          <p className="text-sm mb-3">
+            You will no longer receive messages from this group.
+          </p>
+          <div className="flex justify-end gap-2">
+            <button
+              className="btn btn-sm btn-ghost"
+              onClick={() => setShowLeaveConfirm(false)}
+            >
+              Cancel
+            </button>
+            <button
+              className="btn btn-sm btn-error text-white"
+              onClick={confirmLeave}
+            >
+              Leave
+            </button>
+          </div>
+        </div>
       )}
-    </>
+    </div>
   );
 };
 
-const GroupChatContainer = ({ showBackButton }) => {
+const GroupChatContainer = () => {
   const {
     messages,
     getGroupMessages,
@@ -143,24 +97,12 @@ const GroupChatContainer = ({ showBackButton }) => {
     sendGroupMessage,
     users,
     getUsers,
-    setSelectedGroup,
   } = useChatStore();
 
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [senderCache, setSenderCache] = useState({});
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-  // 检测窗口大小变化
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   // Always load users when component mounts
   useEffect(() => {
@@ -309,19 +251,13 @@ const GroupChatContainer = ({ showBackButton }) => {
   }
 
   return (
-    <div
-      className={`flex-1 flex flex-col overflow-auto ${
-        isMobile ? "h-screen" : ""
-      }`}
-    >
+    <div className="flex-1 flex flex-col overflow-auto">
       <GroupChatHeader
         group={selectedGroup}
         onAddMembers={() => setShowMembersModal(true)}
         onLeaveGroup={() => {
           useChatStore.getState().leaveGroup(selectedGroup._id);
         }}
-        showBackButton={showBackButton}
-        onBack={() => setSelectedGroup(null)}
       />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

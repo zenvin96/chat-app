@@ -23,11 +23,13 @@ const PORT = process.env.PORT;
 const __dirname = path.resolve();
 
 // 配置中间件
-app.use(express.json()); // 解析JSON请求体
+// 增加请求体大小限制，允许上传更大的图片（最大50MB）
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 app.use(cookieParser()); // 解析cookies
 app.use(
   cors({
-    origin: "http://localhost:5173", // 前端开发服务器地址
+    origin: ["http://localhost:5173", "http://192.168.0.8:5173"], // 前端开发服务器地址
     credentials: true, // 允许跨域请求携带凭证(cookies)
   })
 );
