@@ -14,23 +14,29 @@ const ChatContainer = () => {
     isMessagesLoading,
     selectedUser,
     subscribeToMessages,
-    unsubscribeFromMessages,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
 
   useEffect(() => {
-    getMessages(selectedUser._id);
+    let unsubscribe = () => {};
+    if (selectedUser) {
+      console.log(
+        `[ChatContainer] User ${selectedUser._id} selected. Fetching messages and subscribing.`
+      );
+      getMessages(selectedUser._id);
+      unsubscribe = subscribeToMessages();
+    } else {
+      console.log("[ChatContainer] No user selected.");
+    }
 
-    subscribeToMessages();
-
-    return () => unsubscribeFromMessages();
-  }, [
-    selectedUser._id,
-    getMessages,
-    subscribeToMessages,
-    unsubscribeFromMessages,
-  ]);
+    return () => {
+      console.log(
+        "[ChatContainer] Cleanup effect. Calling unsubscribe function."
+      );
+      unsubscribe();
+    };
+  }, [selectedUser, getMessages, subscribeToMessages]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -38,12 +44,20 @@ const ChatContainer = () => {
     }
   }, [messages]);
 
-  if (isMessagesLoading) {
+  if (isMessagesLoading && !messages.length) {
     return (
       <div className="flex-1 flex flex-col overflow-auto">
         <ChatHeader />
         <MessageSkeleton />
         <MessageInput />
+      </div>
+    );
+  }
+
+  if (!selectedUser) {
+    return (
+      <div className="flex-1 flex flex-col justify-center items-center">
+        <p>请从左侧选择一个聊天</p>
       </div>
     );
   }
@@ -59,7 +73,11 @@ const ChatContainer = () => {
             className={`chat ${
               message.senderId === authUser._id ? "chat-end" : "chat-start"
             }`}
-            ref={messageEndRef}
+            ref={
+              messages.length - 1 === messages.indexOf(message)
+                ? messageEndRef
+                : null
+            }
           >
             <div className=" chat-image avatar">
               <div className="size-10 rounded-full border">
@@ -78,7 +96,11 @@ const ChatContainer = () => {
                 {formatMessageTime(message.createdAt)}
               </time>
             </div>
-            <div className="chat-bubble flex flex-col">
+            <div
+              className={`chat-bubble flex flex-col ${
+                message.senderId === authUser._id ? "chat-bubble-primary" : ""
+              }`}
+            >
               {message.image && (
                 <img
                   src={message.image}
@@ -90,6 +112,9 @@ const ChatContainer = () => {
             </div>
           </div>
         ))}
+        {!isMessagesLoading && messages.length === 0 && (
+          <div className="text-center text-gray-500 p-4">开始对话吧！</div>
+        )}
       </div>
 
       <MessageInput />

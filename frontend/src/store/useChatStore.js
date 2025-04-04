@@ -77,10 +77,7 @@ export const useChatStore = create((set, get) => ({
     set({ isMessagesLoading: true });
     try {
       const res = await axiosInstance.get(`/groups/${groupId}/messages`);
-
-      // Process messages to ensure senderId is consistent
       const processedMessages = res.data.map((msg) => {
-        // If senderId is already populated as an object with _id
         if (
           msg.senderId &&
           typeof msg.senderId === "object" &&
@@ -90,7 +87,6 @@ export const useChatStore = create((set, get) => ({
         }
         return msg;
       });
-
       set({ messages: processedMessages });
     } catch (error) {
       toast.error(error.response.data.message);
@@ -118,13 +114,10 @@ export const useChatStore = create((set, get) => ({
         groupId,
         memberIds,
       });
-
       const updatedGroups = get().groups.map((group) =>
         group._id === groupId ? res.data : group
       );
-
       set({ groups: updatedGroups });
-
       return res.data;
     } catch (error) {
       toast.error(error.response.data.message);
@@ -135,20 +128,14 @@ export const useChatStore = create((set, get) => ({
   leaveGroup: async (groupId) => {
     try {
       await axiosInstance.post(`/groups/leave/${groupId}`);
-
-      // Remove group from groups list
       const updatedGroups = get().groups.filter(
         (group) => group._id !== groupId
       );
-
-      // If current selected group is the one we're leaving, clear it
       if (get().selectedGroup?._id === groupId) {
         set({ selectedGroup: null });
       }
-
       set({ groups: updatedGroups });
       toast.success("您已退出该群聊");
-
       return true;
     } catch (error) {
       toast.error(error.response?.data?.message || "退出群聊失败");
@@ -157,7 +144,54 @@ export const useChatStore = create((set, get) => ({
   },
 
   subscribeToMessages: () => {
-    console.log("subscribeToMessages called (potentially redundant)");
+    const { selectedUser } = get();
+    if (!selectedUser) return () => {};
+
+    const socket = useAuthStore.getState().socket;
+    if (!socket) {
+      console.error(
+        "[ChatStore] Socket not available for subscribing to messages."
+      );
+      return () => {};
+    }
+
+    console.log(
+      `[ChatStore] Subscribing to messages for user: ${selectedUser._id}`
+    );
+
+    const messageHandler = (newMessage) => {
+      const currentSelectedUser = get().selectedUser;
+      console.log(
+        `[ChatStore] 'newMessage' received. CurrentSelUser=${currentSelectedUser?._id}, Sender=${newMessage.senderId}`
+      );
+
+      if (
+        currentSelectedUser &&
+        newMessage.senderId === currentSelectedUser._id
+      ) {
+        console.log(
+          `[ChatStore] Message from selected user ${currentSelectedUser._id} received. Updating state.`
+        );
+        set((state) => ({
+          messages: [...state.messages, newMessage],
+        }));
+      }
+    };
+
+    socket.on("newMessage", messageHandler);
+    console.log(
+      `[ChatStore] Added 'newMessage' listener for user ${selectedUser._id}`
+    );
+
+    return () => {
+      console.log(
+        `[ChatStore] Unsubscribing from messages for user: ${selectedUser._id}`
+      );
+      socket.off("newMessage", messageHandler);
+      console.log(
+        `[ChatStore] Removed 'newMessage' listener for user ${selectedUser._id}`
+      );
+    };
   },
 
   subscribeToGroupMessages: (groupId) => {
@@ -191,7 +225,6 @@ export const useChatStore = create((set, get) => ({
 
     socket.on("leftGroup", (leftGroupId) => {
       if (leftGroupId === groupId) {
-        // 当收到自己已离开群组的通知后更新状态
         const updatedGroups = get().groups.filter(
           (group) => group._id !== leftGroupId
         );
@@ -216,7 +249,7 @@ export const useChatStore = create((set, get) => ({
 
   unsubscribeFromMessages: () => {
     console.log(
-      "unsubscribeFromMessages called, but NOT removing global listener."
+      "[ChatStore] unsubscribeFromMessages called (now likely a NO-OP)."
     );
   },
 
