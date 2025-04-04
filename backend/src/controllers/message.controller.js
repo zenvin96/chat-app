@@ -1,5 +1,6 @@
 import User from "../models/user.model.js";
 import Message from "../models/message.model.js";
+import UserFriend from "../models/userFriend.model.js";
 
 import cloudinary from "../lib/cloudinary.js";
 import { getReceiverSocketId, io } from "../lib/socket.js";
@@ -8,20 +9,37 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
  * 获取侧边栏用户列表控制器
  * @param {Object} req - Express请求对象，包含当前登录用户信息
  * @param {Object} res - Express响应对象
- * @returns {Object} 包含所有其他用户信息的JSON响应
+ * @returns {Object} 包含当前用户好友列表的JSON响应
  */
 export const getUsersForSidebar = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
-    // 查找除当前登录用户外的所有用户，并排除密码字段
-    const filteredUsers = await User.find({
-      _id: { $ne: loggedInUserId },
+
+    // 查找当前用户的好友关系记录
+    const userFriend = await UserFriend.findOne({ userId: loggedInUserId });
+
+    // 如果用户没有好友关系记录，返回空数组
+    if (!userFriend) {
+      return res.status(200).json([]);
+    }
+
+    // 获取好友ID列表
+    const friendIds = userFriend.friends;
+
+    // 如果没有好友，返回空数组
+    if (friendIds.length === 0) {
+      return res.status(200).json([]);
+    }
+
+    // 查询所有好友的信息
+    const friends = await User.find({
+      _id: { $in: friendIds },
     }).select("-password");
 
-    res.status(200).json(filteredUsers);
+    res.status(200).json(friends);
   } catch (error) {
     console.error("Error in getUsersForSidebar: ", error.message);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "服务器内部错误" });
   }
 };
 

@@ -4,10 +4,10 @@ import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime } from "../lib/utils";
-import { UsersRound, Info, UserPlus, LogOut } from "lucide-react";
+import { UsersRound, Info, UserPlus, LogOut, X } from "lucide-react";
 import GroupMembersModal from "./GroupMembersModal";
 
-const GroupChatHeader = ({ group, onAddMembers, onLeaveGroup }) => {
+const GroupChatHeader = ({ group, onAddMembers, onLeaveGroup, onClose }) => {
   const { members } = group;
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
@@ -36,48 +36,53 @@ const GroupChatHeader = ({ group, onAddMembers, onLeaveGroup }) => {
         </div>
         <div>
           <h3 className="font-bold">{group.name}</h3>
-          <p className="text-sm text-zinc-400">{members.length} members</p>
+          <p className="text-sm text-zinc-400">{members.length} 位成员</p>
         </div>
       </div>
       <div className="flex items-center gap-2">
         <button
           onClick={onAddMembers}
           className="btn btn-sm btn-ghost btn-circle"
-          title="Add Members"
+          title="添加成员"
         >
           <UserPlus className="size-5" />
         </button>
-        <button className="btn btn-sm btn-ghost btn-circle" title="Group Info">
+        <button className="btn btn-sm btn-ghost btn-circle" title="群组信息">
           <Info className="size-5" />
         </button>
         <button
           onClick={handleLeaveClick}
           className="btn btn-sm btn-ghost btn-circle text-red-500"
-          title="Leave Group"
+          title="退出群组"
         >
           <LogOut className="size-5" />
+        </button>
+        <button
+          onClick={onClose}
+          className="btn btn-sm btn-ghost btn-circle"
+          title="关闭聊天"
+        >
+          <X className="size-5" />
         </button>
       </div>
 
       {/* Leave Confirmation Dialog */}
       {showLeaveConfirm && (
         <div className="absolute z-20 right-0 top-[calc(100%+10px)] bg-base-200 shadow-md rounded-lg p-4 w-64">
-          <h4 className="font-bold mb-2">Leave Group?</h4>
-          <p className="text-sm mb-3">
-            You will no longer receive messages from this group.
-          </p>
+          <h4 className="font-bold mb-2">确认退出群组？</h4>
+          <p className="text-sm mb-3">您将不再收到此群组的消息通知</p>
           <div className="flex justify-end gap-2">
             <button
               className="btn btn-sm btn-ghost"
               onClick={() => setShowLeaveConfirm(false)}
             >
-              Cancel
+              取消
             </button>
             <button
               className="btn btn-sm btn-error text-white"
               onClick={confirmLeave}
             >
-              Leave
+              退出
             </button>
           </div>
         </div>
@@ -92,6 +97,7 @@ const GroupChatContainer = () => {
     getGroupMessages,
     isMessagesLoading,
     selectedGroup,
+    setSelectedGroup,
     subscribeToGroupMessages,
     unsubscribeFromGroupMessages,
     sendGroupMessage,
@@ -109,35 +115,31 @@ const GroupChatContainer = () => {
     getUsers();
   }, [getUsers]);
 
-  // Fetch and cache sender data
+  // Fetch and cache sender data - 修复无限循环问题
   useEffect(() => {
     if (!messages || !users || users.length === 0) return;
 
-    // Build a cache of all senders in the current messages
+    // 创建新的缓存对象
     const newSenderCache = { ...senderCache };
     let cacheUpdated = false;
 
     messages.forEach((message) => {
-      const senderId = message.senderId;
+      const senderId =
+        typeof message.senderId === "object"
+          ? message.senderId._id
+          : message.senderId;
 
-      // Skip if we already have this sender cached
+      // 如果已经缓存过这个发送者，跳过
       if (newSenderCache[senderId]) return;
 
-      // If senderId is an object, use the object itself
-      if (typeof senderId === "object" && senderId._id) {
-        newSenderCache[senderId._id] = senderId;
-        cacheUpdated = true;
-        return;
-      }
-
-      // If it's the current user
+      // 如果是当前用户
       if (senderId === authUser._id) {
         newSenderCache[senderId] = authUser;
         cacheUpdated = true;
         return;
       }
 
-      // Look in users array
+      // 在用户列表中查找
       const userMatch = users.find((u) => u._id === senderId);
       if (userMatch) {
         newSenderCache[senderId] = userMatch;
@@ -145,7 +147,7 @@ const GroupChatContainer = () => {
         return;
       }
 
-      // Look in group members if they are objects
+      // 在群组成员中查找
       if (selectedGroup?.members) {
         const memberMatch = selectedGroup.members.find(
           (m) => typeof m === "object" && m._id === senderId
@@ -157,7 +159,7 @@ const GroupChatContainer = () => {
         }
       }
 
-      // Default fallback
+      // 默认情况
       newSenderCache[senderId] = {
         _id: senderId,
         fullName:
@@ -169,10 +171,11 @@ const GroupChatContainer = () => {
       cacheUpdated = true;
     });
 
+    // 只在有更新时设置state
     if (cacheUpdated) {
       setSenderCache(newSenderCache);
     }
-  }, [messages, users, selectedGroup, authUser._id, senderCache]);
+  }, [messages, users, selectedGroup, authUser._id]); // 移除senderCache依赖
 
   // Get messages when selected group changes
   useEffect(() => {
@@ -188,7 +191,6 @@ const GroupChatContainer = () => {
     };
   }, [
     selectedGroup?._id,
-    selectedGroup?.name,
     getGroupMessages,
     subscribeToGroupMessages,
     unsubscribeFromGroupMessages,
@@ -205,7 +207,8 @@ const GroupChatContainer = () => {
   const getSender = (senderId) => {
     // Handle case where senderId is already a populated object
     if (typeof senderId === "object" && senderId._id) {
-      return senderId;
+      const id = senderId._id;
+      return senderCache[id] || senderId;
     }
 
     // Most efficient lookup from our cache
@@ -240,10 +243,15 @@ const GroupChatContainer = () => {
     }
   };
 
+  // 关闭群聊窗口
+  const handleCloseChat = () => {
+    setSelectedGroup(null);
+  };
+
   if (isMessagesLoading || !selectedGroup) {
     return (
       <div className="flex-1 flex flex-col overflow-auto">
-        <div className="py-3 px-4 border-b border-base-300">Loading...</div>
+        <div className="py-3 px-4 border-b border-base-300">加载中...</div>
         <MessageSkeleton />
         <MessageInput onSendMessage={handleSendMessage} />
       </div>
@@ -258,6 +266,7 @@ const GroupChatContainer = () => {
         onLeaveGroup={() => {
           useChatStore.getState().leaveGroup(selectedGroup._id);
         }}
+        onClose={handleCloseChat}
       />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -268,8 +277,7 @@ const GroupChatContainer = () => {
             </div>
             <h3 className="font-bold text-lg">{selectedGroup.name}</h3>
             <p className="text-zinc-500 text-center max-w-md mt-2">
-              This is the beginning of the group chat. Send a message to
-              communicate with all members.
+              这是群聊的开始。发送一条消息与所有成员交流。
             </p>
           </div>
         ) : (

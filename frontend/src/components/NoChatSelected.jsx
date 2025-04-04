@@ -26,10 +26,10 @@ const NoChatSelected = ({ showMenuButton, onOpenMenu }) => {
 
           {/* 欢迎文字 */}
           <h2 className="text-xl sm:text-2xl font-bold text-base-content">
-            Welcome to Chat Sand!
+            欢迎使用沙聊！
           </h2>
           <p className="text-sm sm:text-base text-base-content/60 max-w-xs mx-auto">
-            Select a conversation from the sidebar to start chatting
+            从左侧选择一个联系人开始聊天
           </p>
         </div>
       </div>
