@@ -235,7 +235,7 @@ export const useNotificationStore = create((set, get) => ({
     if (!socket) return;
 
     // 先清除可能存在的旧监听器，避免重复
-    get().removeNotificationListeners();
+    // get().removeNotificationListeners();
 
     // 监听私聊消息
     socket.on("newMessage", (message) => {
