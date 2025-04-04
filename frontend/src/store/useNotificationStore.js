@@ -243,19 +243,19 @@ export const useNotificationStore = create((set, get) => ({
       const sender = useChatStore
         .getState()
         .users.find((user) => user._id === message.senderId);
-
-      if (sender) {
-        console.log("收到新私聊消息:", message);
-        get().addNotification({
-          id: message._id,
-          type: "private",
-          senderId: message.senderId,
-          senderName: sender.fullName,
-          senderProfilePic: sender.profilePic,
-          text: message.text,
-          timestamp: message.createdAt || new Date().toISOString(),
-        });
-      }
+      //   console.log(sender);
+      //   if (sender) {
+      console.log("收到新私聊消息:", message);
+      get().addNotification({
+        id: message._id,
+        type: "private",
+        senderId: message.senderId,
+        senderName: sender.fullName,
+        senderProfilePic: sender.profilePic,
+        text: message.text,
+        timestamp: message.createdAt || new Date().toISOString(),
+      });
+      //   }
     });
 
     // 监听群聊消息

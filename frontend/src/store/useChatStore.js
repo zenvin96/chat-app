@@ -159,6 +159,7 @@ export const useChatStore = create((set, get) => ({
   subscribeToMessages: () => {
     const { selectedUser } = get();
     if (!selectedUser) return;
+    console.log("subscribeToMessages");
 
     const socket = useAuthStore.getState().socket;
 
@@ -219,6 +220,7 @@ export const useChatStore = create((set, get) => ({
 
   unsubscribeFromGroupMessages: (groupId) => {
     if (!groupId) return;
+    console.log("unsubscribeFromMessages");
 
     const socket = useAuthStore.getState().socket;
     socket.emit("leaveGroup", groupId);
@@ -229,6 +231,7 @@ export const useChatStore = create((set, get) => ({
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
+    console.log("unsubscribeFromMessages");
     socket.off("newMessage");
   },
 
