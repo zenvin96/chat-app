@@ -157,21 +157,7 @@ export const useChatStore = create((set, get) => ({
   },
 
   subscribeToMessages: () => {
-    const { selectedUser } = get();
-    if (!selectedUser) return;
-    console.log("subscribeToMessages");
-
-    const socket = useAuthStore.getState().socket;
-
-    socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser =
-        newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
-
-      set({
-        messages: [...get().messages, newMessage],
-      });
-    });
+    console.log("subscribeToMessages called (potentially redundant)");
   },
 
   subscribeToGroupMessages: (groupId) => {
@@ -220,7 +206,6 @@ export const useChatStore = create((set, get) => ({
 
   unsubscribeFromGroupMessages: (groupId) => {
     if (!groupId) return;
-    console.log("unsubscribeFromMessages");
 
     const socket = useAuthStore.getState().socket;
     socket.emit("leaveGroup", groupId);
@@ -230,9 +215,9 @@ export const useChatStore = create((set, get) => ({
   },
 
   unsubscribeFromMessages: () => {
-    const socket = useAuthStore.getState().socket;
-    console.log("unsubscribeFromMessages");
-    socket.off("newMessage");
+    console.log(
+      "unsubscribeFromMessages called, but NOT removing global listener."
+    );
   },
 
   setSelectedUser: (selectedUser) => {
