@@ -12,6 +12,9 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
   isGroupsLoading: false,
+  isSendingMessage: false,
+  activeTab: "users",
+  showOnlineOnly: false,
 
   getUsers: async () => {
     set({ isUsersLoading: true });
@@ -266,4 +269,10 @@ export const useChatStore = create((set, get) => ({
       selectedUser: null,
     });
   },
+
+  setActiveTab: (tab) => set({ activeTab: tab }),
+
+  setShowOnlineOnly: (show) => set({ showOnlineOnly: show }),
+
+  setUsers: (users) => set({ users }),
 }));
